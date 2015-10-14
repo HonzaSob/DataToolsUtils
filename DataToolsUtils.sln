@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataTools_Utils", "DataTools_Utils.csproj", "{E103D88D-9CD8-45E0-8FEA-1E9F01F5A3FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataToolsUtils", "DataToolsUtils.csproj", "{E103D88D-9CD8-45E0-8FEA-1E9F01F5A3FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

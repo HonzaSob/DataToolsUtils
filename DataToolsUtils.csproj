@@ -13,8 +13,8 @@
     <ProjectGuid>{E103D88D-9CD8-45E0-8FEA-1E9F01F5A3FC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DeploySingleSqlObject</RootNamespace>
-    <AssemblyName>DeploySingleSqlObject</AssemblyName>
+    <RootNamespace>DataToolsUtils</RootNamespace>
+    <AssemblyName>DataToolsUtils</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
