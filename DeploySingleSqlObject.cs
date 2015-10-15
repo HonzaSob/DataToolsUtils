@@ -11,6 +11,11 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using EnvDTE;
 using Microsoft.VisualStudio.Data.Tools.SqlEditor;
+using Microsoft.SqlServer.Management.UI.ConnectionDlg;
+using System.Data;
+using Microsoft.SqlServer.Management.Smo.RegSvrEnum;
+using Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration;
+using System.Windows.Forms;
 
 namespace DataToolsUtils
 {
@@ -28,6 +33,15 @@ namespace DataToolsUtils
         /// Command menu group (command set GUID).
         /// </summary>
         public static readonly Guid CommandSet = new Guid("8998fbba-6e4d-42e6-8447-648d814829ed");
+
+
+        /// <summary>
+        /// OutputWindow Guid
+        /// </summary>
+        private Guid OutputWindowGuid = new Guid("89682E10-8B5B-4732-BDF3-672E2D1BA7A6");
+
+        private const string OutputWindowTitle = "Deploy Single SQL Object";
+
 
         /// <summary>
         /// VS Package that provides this command, not null.
@@ -102,7 +116,7 @@ namespace DataToolsUtils
 
                 if (doc.Language != "SQL Server Tools")
                 {
-                    VsShellUtilities.ShowMessageBox(this.ServiceProvider, "Can not deploy file. It is not supported SQL.", null, OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                    VsShellUtilities.ShowMessageBox(this.ServiceProvider, "Can not deploy file. It is not supported SQL.", null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
                     return;
                 }
 
@@ -114,11 +128,53 @@ namespace DataToolsUtils
                     string command = PrepareCommand(content);
 
                     Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog dialog = new Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog();
-                    
-                    dialog.ShowDialog();
-                    //dialog.
-                    VsShellUtilities.ShowMessageBox(this.ServiceProvider, command, "Command", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+
+                    dialog.AddServer(new SqlServerType());
+                    Win32WindowWrapper win32WindowWrapper = new Win32WindowWrapper((IntPtr)doc.ActiveWindow.HWnd);
+                    IDbConnection connection = null;
+                    UIConnectionInfo connInfo = new UIConnectionInfo();
+                    DialogResult dr = dialog.ShowDialogValidateConnection(win32WindowWrapper, ref connInfo, out connection);
+                    if (dr == DialogResult.OK && connection != null && !string.IsNullOrEmpty(connection.Database) && connection.State == ConnectionState.Open)
+                    {
+                        //VsShellUtilities.ShowMessageBox(this.ServiceProvider, "EXECUTE ON :"+ connection.ConnectionString +"; Command: " + command, "Command", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+
+                        IVsOutputWindow outWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
+
+                        
+                        outWindow.CreatePane(ref OutputWindowGuid, OutputWindowTitle, 1, 1);
+
+                        IVsOutputWindowPane customPane;
+                        outWindow.GetPane(ref OutputWindowGuid, out customPane);
+
+                        customPane.OutputString("Executing script on "+connection.ConnectionString + "\r\n");
+
+                        connection.ChangeDatabase("UCB"); // TODO
+
+                        var cmd = connection.CreateCommand();
+                        cmd.CommandText = command;
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                            customPane.OutputString("Deployed successfully\r\n");
+                        }
+                        catch (Exception ex)
+                        {
+                            string error = "\r\nError during deployment: " + ex.ToString() + "\r\n";
+                            customPane.OutputString(error);
+                            VsShellUtilities.ShowMessageBox(this.ServiceProvider, error, "Error", OLEMSGICON.OLEMSGICON_CRITICAL, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                        }
+                        customPane.Activate();
+                    }
+                    else
+                    {
+                        VsShellUtilities.ShowMessageBox(this.ServiceProvider, command, "Error during connecting", OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                    }
                 }
+            }
+            else
+            {
+                VsShellUtilities.ShowMessageBox(this.ServiceProvider, "There is no active tab which could be processed", null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                return;
             }
             //VsShellUtilities.ShowMessageBox(this.ServiceProvider, text, null, OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
         }
@@ -149,7 +205,9 @@ namespace DataToolsUtils
 
         private string PrepareCommand(string text)
         {
+            //string ret = System.Text.RegularExpressions.Regex.Replace(text, "CREATE\\s+(PROCEDURE|FUNCTION|VIEW)\\s+([^ (@\n]+)", "IF EXISTS");
             string ret = System.Text.RegularExpressions.Regex.Replace(text, "CREATE\\s+(PROCEDURE|FUNCTION|VIEW)", "ALTER $1");
+
             return ret;
         }
     }
