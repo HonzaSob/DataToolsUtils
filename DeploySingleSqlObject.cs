@@ -10,12 +10,13 @@ using System.Globalization;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using EnvDTE;
-using Microsoft.VisualStudio.Data.Tools.SqlEditor;
-using Microsoft.SqlServer.Management.UI.ConnectionDlg;
+//using Microsoft.VisualStudio.Data.Tools.SqlEditor;
+//using Microsoft.SqlServer.Management.UI.ConnectionDlg;
 using System.Data;
 using Microsoft.SqlServer.Management.Smo.RegSvrEnum;
-using Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration;
+//using Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration;
 using System.Windows.Forms;
+using Microsoft.VSDesigner.ServerExplorer;
 
 namespace DataToolsUtils
 {
@@ -127,14 +128,16 @@ namespace DataToolsUtils
                     string content = GetTextDocumentContent(td);
                     string command = PrepareCommand(content);
 
-                    Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog dialog = new Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog();
+                    IVsServerExplorer explorer = (IVsServerExplorer)Package.GetGlobalService(typeof(IVsServerExplorer));
 
-                    dialog.AddServer(new SqlServerType());
-                    Win32WindowWrapper win32WindowWrapper = new Win32WindowWrapper((IntPtr)doc.ActiveWindow.HWnd);
+                    //Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog dialog = new Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog();
+
+                    //dialog.AddServer(new SqlServerType());
+                    //Win32WindowWrapper win32WindowWrapper = new Win32WindowWrapper((IntPtr)doc.ActiveWindow.HWnd);
                     IDbConnection connection = null;
                     UIConnectionInfo connInfo = new UIConnectionInfo();
-                    DialogResult dr = dialog.ShowDialogValidateConnection(win32WindowWrapper, ref connInfo, out connection);
-                    if (dr == DialogResult.OK && connection != null && !string.IsNullOrEmpty(connection.Database) && connection.State == ConnectionState.Open)
+                    //DialogResult dr = dialog.ShowDialogValidateConnection(win32WindowWrapper, ref connInfo, out connection);
+                    //if (dr == DialogResult.OK && connection != null && !string.IsNullOrEmpty(connection.Database) && connection.State == ConnectionState.Open)
                     {
                         //VsShellUtilities.ShowMessageBox(this.ServiceProvider, "EXECUTE ON :"+ connection.ConnectionString +"; Command: " + command, "Command", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
 
@@ -165,10 +168,10 @@ namespace DataToolsUtils
                         }
                         customPane.Activate();
                     }
-                    else
-                    {
-                        VsShellUtilities.ShowMessageBox(this.ServiceProvider, command, "Error during connecting", OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                    }
+                    //else
+                    //{
+                    //    VsShellUtilities.ShowMessageBox(this.ServiceProvider, command, "Error during connecting", OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                    //}
                 }
             }
             else
