@@ -16,6 +16,9 @@ using System.Text.RegularExpressions;
 using DataToolsUtils.Forms;
 using System.Windows.Forms;
 using System.Data.SqlClient;
+using Microsoft.SqlServer.Dac.Model;
+using Microsoft.SqlServer.Dac;
+using System.IO;
 
 namespace DataToolsUtils
 {
@@ -158,7 +161,8 @@ namespace DataToolsUtils
 
                             string serverName = (connStringBuilder.DataSource + "." + connStringBuilder.InitialCatalog).Trim('.');
 
-                            connections.Add(serverName,connStringDecrypted);
+                            if (!string.IsNullOrEmpty(connStringBuilder.InitialCatalog))
+                                connections.Add(serverName,connStringDecrypted);
                         }
                     }
 
@@ -190,17 +194,51 @@ namespace DataToolsUtils
 
                         try
                         {
-                            using (IDbConnection connection = new SqlConnection(connectionString))
+                            //using (IDbConnection connection = new SqlConnection(connectionString))
                             {
-                                var cmd = connection.CreateCommand();
+                                //var cmd = connection.CreateCommand();
 
                                 string content = GetTextDocumentContent(td);
-                                string command = PrepareCommand(content, customPane);
+                                //string command = PrepareCommand(content, customPane, connection);
 
-                                cmd.CommandText = command;
+                                //cmd.CommandText = command;
 
 
-                                cmd.ExecuteNonQuery();
+                                //cmd.ExecuteNonQuery();
+                                TSqlModelOptions options = new TSqlModelOptions();
+                                TSqlModel model = new TSqlModel(SqlServerVersion.Sql120,options);
+                                model.AddObjects(content);
+                                var errors = model.Validate();
+
+                                // tohle asi bude hazet pro proceduru haldu chyb bo tabulky v modelu nejsou
+                                if (errors != null && errors.Count > 0)
+                                {
+                                    string result = "";
+                                    foreach (var it in errors)
+                                    {
+                                        result += it.Message + "\n";
+                                    }
+                                    VsShellUtilities.ShowMessageBox(this.ServiceProvider, result, null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                                    return;
+                                }
+
+                                
+                                SqlConnectionStringBuilder connStringBuilder = new SqlConnectionStringBuilder();
+                                connStringBuilder.ConnectionString = connectionString;
+                                string databaseName = connStringBuilder.InitialCatalog;
+
+
+
+                                DacServices svc = new DacServices(connectionString);
+                                MemoryStream stream = new MemoryStream();
+                                svc.Extract(stream, databaseName, "WorkingApp", new Version(1, 0), extractOptions: new DacExtractOptions());
+                                DacPackage dacpac = DacPackage.Load(stream);
+
+                                svc.Deploy(dacpac, databaseName, true, new DacDeployOptions() { BlockOnPossibleDataLoss = true, DropObjectsNotInSource = false });
+
+                                //DacPackage package = DacPackage.Load(;
+                                //package
+
                                 customPane.OutputString("Deployed successfully\r\n");
                             }
                         }
@@ -245,17 +283,17 @@ namespace DataToolsUtils
             return text;
         }
 
-        private string PrepareCommand(string text, IVsOutputWindowPane outputWindow) // do budoucna predavat log jinak
-        {
-            //string ret = System.Text.RegularExpressions.Regex.Replace(text, "CREATE\\s+(PROCEDURE|FUNCTION|VIEW)\\s+([^ (@\n]+)", "IF EXISTS");
-            string pattern = "CREATE\\s+(PROCEDURE|FUNCTION|VIEW)\\s+((\\[[^\\]]+\\]|[^.]+))?[.]?((\\[[^\\]]+\\]|[^\\s]+))";
+        //private string PrepareCommand(string text, IVsOutputWindowPane outputWindow) // do budoucna predavat log jinak
+        //{
+        //    //string ret = System.Text.RegularExpressions.Regex.Replace(text, "CREATE\\s+(PROCEDURE|FUNCTION|VIEW)\\s+([^ (@\n]+)", "IF EXISTS");
+        //    string pattern = "CREATE\\s+(PROCEDURE|FUNCTION|VIEW)\\s+((\\[[^\\]]+\\]|[^.]+))?[.]?((\\[[^\\]]+\\]|[^\\s]+))";
 
-            if (!Regex.IsMatch(text, pattern))
-                outputWindow.OutputString(string.Format("Processed command does not contain pattern \"{0}\". Executing anyway.",pattern));
+        //    if (!Regex.IsMatch(text, pattern))
+        //        outputWindow.OutputString(string.Format("Processed command does not contain pattern \"{0}\". Executing anyway.",pattern));
 
-            string ret = Regex.Replace(text, pattern, "ALTER $1");
+        //    string ret = Regex.Replace(text, pattern, "ALTER $1");
 
-            return ret;
-        }
+        //    return ret;
+        //}
     }
 }

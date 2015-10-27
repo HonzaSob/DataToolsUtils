@@ -17,7 +17,7 @@ namespace DataToolsUtils.Forms
             InitializeComponent();
         }
 
-        public ConnectionDialog(Dictionary<string,string> connectionStrings)
+        public ConnectionDialog(Dictionary<string,string> connectionStrings) : this()
         {
             this.connectionStrings = connectionStrings;
         }
@@ -56,6 +56,9 @@ namespace DataToolsUtils.Forms
 
         private void btnOK_Click(object sender, EventArgs e)
         {
+            if (listBoxConnections.SelectedItem == null)
+                return;
+
             this.selectedConnectionString = this.ConnectionStrings[listBoxConnections.SelectedItem.ToString()];
 
             this.DialogResult = DialogResult.OK;
