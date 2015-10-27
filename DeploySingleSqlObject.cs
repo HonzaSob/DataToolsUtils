@@ -142,13 +142,13 @@ namespace DataToolsUtils
                     }
 
                     string connectionStringOut;
-                    string ConnectionNamePattern = "ServerInstance{0}";;
+                    string ConnectionNamePattern = "\\ServerInstance{0}";;
 
                     Dictionary<string, string> connections = new Dictionary<string, string>();
 
                     for (int i = 0; i < 10; i++)
                     {
-                        _settingsStore.GetStringOrDefault(SSDTCollection, string.Format(ConnectionNamePattern, i), string.Empty, out connectionStringOut);
+                        _settingsStore.GetStringOrDefault(SSDTCollection + string.Format(ConnectionNamePattern, i), "ConnectionString", string.Empty, out connectionStringOut);
 
                         if (!string.IsNullOrEmpty(connectionStringOut))
                         {
