@@ -150,8 +150,8 @@ namespace DataToolsUtils
 
                     for (int i = 0; i < 10; i++)
                     {
-                        _settingsStore.GetStringOrDefault("\\ConnectionMruList", string.Format(ConnectionNamePattern, i), string.Empty, out connectionName);
-                        _settingsStore.GetStringOrDefault("\\ConnectionMruList", string.Format(ConnectionKeyPattern, i), string.Empty, out connectionStringOut);
+                        _settingsStore.GetStringOrDefault(SSDTCollection, string.Format(ConnectionNamePattern, i), string.Empty, out connectionName);
+                        _settingsStore.GetStringOrDefault(SSDTCollection, string.Format(ConnectionKeyPattern, i), string.Empty, out connectionStringOut);
 
                         if (!string.IsNullOrEmpty(connectionName))
                             connections.Add(connectionName, DataProtection.DecryptString(connectionStringOut));
