@@ -15,7 +15,7 @@ using System.Data;
 using System.Text.RegularExpressions;
 using DataToolsUtils.Forms;
 using System.Windows.Forms;
-using System.Data.OleDb;
+using System.Data.SqlClient;
 
 namespace DataToolsUtils
 {
@@ -132,7 +132,7 @@ namespace DataToolsUtils
                     settingsManager.GetWritableSettingsStore((uint)__VsSettingsScope.SettingsScope_UserSettings, out _settingsStore);
 
                     int ret = 0;
-                    string SSDTCollection = "\\SSDT\\ConnectionMruList";
+                    string SSDTCollection = "\\SSDT\\SqlServerObjectExplorer";
                     _settingsStore.CollectionExists(SSDTCollection, out ret);
                     
                     if (ret == 0)
@@ -141,20 +141,25 @@ namespace DataToolsUtils
                         return;
                     }
 
-                    string connectionName;
                     string connectionStringOut;
-                    string ConnectionNamePattern = "ConnectionName{0}";
-                    string ConnectionKeyPattern = "Connection{0}";
+                    string ConnectionNamePattern = "ServerInstance{0}";;
 
                     Dictionary<string, string> connections = new Dictionary<string, string>();
 
                     for (int i = 0; i < 10; i++)
                     {
-                        _settingsStore.GetStringOrDefault(SSDTCollection, string.Format(ConnectionNamePattern, i), string.Empty, out connectionName);
-                        _settingsStore.GetStringOrDefault(SSDTCollection, string.Format(ConnectionKeyPattern, i), string.Empty, out connectionStringOut);
+                        _settingsStore.GetStringOrDefault(SSDTCollection, string.Format(ConnectionNamePattern, i), string.Empty, out connectionStringOut);
 
-                        if (!string.IsNullOrEmpty(connectionName))
-                            connections.Add(connectionName, DataProtection.DecryptString(connectionStringOut));
+                        if (!string.IsNullOrEmpty(connectionStringOut))
+                        {
+                            string connStringDecrypted = DataProtection.DecryptString(connectionStringOut);
+                            SqlConnectionStringBuilder connStringBuilder = new SqlConnectionStringBuilder();
+                            connStringBuilder.ConnectionString = connStringDecrypted;
+
+                            string serverName = connStringBuilder.DataSource + "." + connStringBuilder.InitialCatalog;
+
+                            connections.Add(serverName,connStringDecrypted);
+                        }
                     }
 
                     if (connections.Count == 0)
@@ -185,7 +190,7 @@ namespace DataToolsUtils
 
                         try
                         {
-                            using (IDbConnection connection = new OleDbConnection(connectionString))
+                            using (IDbConnection connection = new SqlConnection(connectionString))
                             {
                                 var cmd = connection.CreateCommand();
 
