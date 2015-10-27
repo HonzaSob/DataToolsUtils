@@ -6,17 +6,12 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.Globalization;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using EnvDTE;
-//using Microsoft.VisualStudio.Data.Tools.SqlEditor;
-//using Microsoft.SqlServer.Management.UI.ConnectionDlg;
 using System.Data;
-using Microsoft.SqlServer.Management.Smo.RegSvrEnum;
-//using Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration;
-using System.Windows.Forms;
-using Microsoft.VSDesigner.ServerExplorer;
+using System.Collections.Generic;
+
 
 namespace DataToolsUtils
 {
@@ -33,7 +28,7 @@ namespace DataToolsUtils
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("8998fbba-6e4d-42e6-8447-648d814829ed");
+        public static readonly Guid CommandSet = new Guid("F1732CDA-75A4-4A9E-A7B0-C2F3AF84A31B");
 
 
         /// <summary>
@@ -101,6 +96,9 @@ namespace DataToolsUtils
             Instance = new DeploySingleSqlObject(package);
         }
 
+
+        private IVsWritableSettingsStore _settingsStore = null;
+
         /// <summary>
         /// This function is the callback used to execute the command when the menu item is clicked.
         /// See the constructor to see how the menu item is associated with this function using
@@ -128,14 +126,88 @@ namespace DataToolsUtils
                     string content = GetTextDocumentContent(td);
                     string command = PrepareCommand(content);
 
-                    IVsServerExplorer explorer = (IVsServerExplorer)Package.GetGlobalService(typeof(IVsServerExplorer));
+                    IVsSettingsManager settingsManager = ServiceProvider.GetService(typeof(SVsSettingsManager)) as IVsSettingsManager;
+                    
+                    settingsManager.GetWritableSettingsStore((uint)__VsSettingsScope.SettingsScope_UserSettings, out _settingsStore);
 
-                    //Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog dialog = new Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog();
+                    int ret = 0;
+                    string SSDTCollection = "\\SSDT\\ConnectionMruList";
+                    _settingsStore.CollectionExists(SSDTCollection, out ret);
+                    
+                    if (ret == 0)
+                    {
+                        VsShellUtilities.ShowMessageBox(this.ServiceProvider, "There is no connection configured in the SQL Server Object Explorer", null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                    }
 
-                    //dialog.AddServer(new SqlServerType());
-                    //Win32WindowWrapper win32WindowWrapper = new Win32WindowWrapper((IntPtr)doc.ActiveWindow.HWnd);
-                    IDbConnection connection = null;
-                    UIConnectionInfo connInfo = new UIConnectionInfo();
+                    uint ret2;
+                    _settingsStore.GetPropertyCount(SSDTCollection, out ret2);
+
+                    for (uint j = 0; j < ret2; j++)
+                    {
+                        string propname;
+                        _settingsStore.GetPropertyName(SSDTCollection, j, out propname);
+                        Console.WriteLine(propname);
+
+                        uint type;
+                        _settingsStore.GetPropertyType(SSDTCollection, propname, out type);
+                        Console.WriteLine(type);
+
+                        string val;
+                        _settingsStore.GetStringOrDefault(SSDTCollection, propname, String.Empty, out val);
+                        Console.WriteLine(val);
+                        //_settingsStore.GetPropertyCount()
+                    }
+
+
+                    _settingsStore.GetSubCollectionCount(SSDTCollection, out ret2);
+
+                    for (uint j = 0; j<ret2; j++)
+                    {
+                        string subcollname;
+                        _settingsStore.GetSubCollectionName(SSDTCollection, j, out subcollname);
+                        Console.WriteLine(subcollname);
+
+                        uint ret3;
+                        _settingsStore.GetPropertyCount(SSDTCollection, out ret3);
+                        for (uint k = 0; k < ret3; k++)
+                        {
+                            string propname;
+                            _settingsStore.GetPropertyName(SSDTCollection, k, out propname);
+                            Console.WriteLine(propname);
+
+                            uint type;
+                            _settingsStore.GetPropertyType(SSDTCollection, propname, out type);
+                            Console.WriteLine(type);
+
+                            string val;
+                            _settingsStore.GetStringOrDefault(SSDTCollection, propname, String.Empty, out val);
+                            Console.WriteLine(val);
+                            //_settingsStore.GetPropertyCount()
+                        }
+                    }
+
+                    string connectionName;
+                    string connectionString;
+                    string ConnectionNamePattern = "ConnectionName{0}";
+                    string ConnectionKeyPattern = "Connection{0}";
+
+                    Dictionary<string, string> connections = new Dictionary<string, string>();
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        _settingsStore.GetStringOrDefault("\\ConnectionMruList", string.Format(ConnectionNamePattern, i), string.Empty, out connectionName);
+                        _settingsStore.GetStringOrDefault("\\ConnectionMruList", string.Format(ConnectionKeyPattern, i), string.Empty, out connectionString);
+
+                        connections.Add(connectionName, connectionString);
+                    }
+
+
+                        //Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog dialog = new Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog();
+
+                        //dialog.AddServer(new SqlServerType());
+                        //Win32WindowWrapper win32WindowWrapper = new Win32WindowWrapper((IntPtr)doc.ActiveWindow.HWnd);
+                        IDbConnection connection = null;
+                    //UIConnectionInfo connInfo = new UIConnectionInfo();
                     //DialogResult dr = dialog.ShowDialogValidateConnection(win32WindowWrapper, ref connInfo, out connection);
                     //if (dr == DialogResult.OK && connection != null && !string.IsNullOrEmpty(connection.Database) && connection.State == ConnectionState.Open)
                     {
@@ -179,7 +251,6 @@ namespace DataToolsUtils
                 VsShellUtilities.ShowMessageBox(this.ServiceProvider, "There is no active tab which could be processed", null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
                 return;
             }
-            //VsShellUtilities.ShowMessageBox(this.ServiceProvider, text, null, OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
         }
 
         private Document GetActiveDocument(IServiceProvider serviceProvider)

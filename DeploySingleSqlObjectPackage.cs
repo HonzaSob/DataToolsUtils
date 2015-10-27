@@ -45,7 +45,7 @@ namespace DataToolsUtils
         /// <summary>
         /// DeploySingleSqlObjectPackage GUID string.
         /// </summary>
-        public const string PackageGuidString = "539f8c52-0945-4b5d-8933-a4e1bca76c42";
+        public const string PackageGuidString = "7890018E-DF8D-4905-A158-0E89ECF7C050";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploySingleSqlObject"/> class.

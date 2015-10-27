@@ -56,7 +56,7 @@
         <Parent guid="guidDeploySingleSqlObjectPackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>Invoke DeploySingleSqlObject</ButtonText>
+          <ButtonText>Deploy object</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -74,10 +74,10 @@
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidDeploySingleSqlObjectPackage" value="{539f8c52-0945-4b5d-8933-a4e1bca76c42}" />
+    <GuidSymbol name="guidDeploySingleSqlObjectPackage" value="{7890018E-DF8D-4905-A158-0E89ECF7C050}" />
 
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidDeploySingleSqlObjectPackageCmdSet" value="{8998fbba-6e4d-42e6-8447-648d814829ed}">
+    <GuidSymbol name="guidDeploySingleSqlObjectPackageCmdSet" value="{F1732CDA-75A4-4A9E-A7B0-C2F3AF84A31B}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="DeploySingleSqlObjectId" value="0x0100" />
     </GuidSymbol>
