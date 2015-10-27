@@ -4,14 +4,18 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-using System;
-using System.ComponentModel.Design;
+using EnvDTE;
+using Microsoft.VisualStudio.Data;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using EnvDTE;
-using System.Data;
+using System;
 using System.Collections.Generic;
-
+using System.ComponentModel.Design;
+using System.Data;
+using System.Text.RegularExpressions;
+using DataToolsUtils.Forms;
+using System.Windows.Forms;
+using System.Data.OleDb;
 
 namespace DataToolsUtils
 {
@@ -123,9 +127,6 @@ namespace DataToolsUtils
 
                 if (td != null)
                 {
-                    string content = GetTextDocumentContent(td);
-                    string command = PrepareCommand(content);
-
                     IVsSettingsManager settingsManager = ServiceProvider.GetService(typeof(SVsSettingsManager)) as IVsSettingsManager;
                     
                     settingsManager.GetWritableSettingsStore((uint)__VsSettingsScope.SettingsScope_UserSettings, out _settingsStore);
@@ -137,57 +138,11 @@ namespace DataToolsUtils
                     if (ret == 0)
                     {
                         VsShellUtilities.ShowMessageBox(this.ServiceProvider, "There is no connection configured in the SQL Server Object Explorer", null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                    }
-
-                    uint ret2;
-                    _settingsStore.GetPropertyCount(SSDTCollection, out ret2);
-
-                    for (uint j = 0; j < ret2; j++)
-                    {
-                        string propname;
-                        _settingsStore.GetPropertyName(SSDTCollection, j, out propname);
-                        Console.WriteLine(propname);
-
-                        uint type;
-                        _settingsStore.GetPropertyType(SSDTCollection, propname, out type);
-                        Console.WriteLine(type);
-
-                        string val;
-                        _settingsStore.GetStringOrDefault(SSDTCollection, propname, String.Empty, out val);
-                        Console.WriteLine(val);
-                        //_settingsStore.GetPropertyCount()
-                    }
-
-
-                    _settingsStore.GetSubCollectionCount(SSDTCollection, out ret2);
-
-                    for (uint j = 0; j<ret2; j++)
-                    {
-                        string subcollname;
-                        _settingsStore.GetSubCollectionName(SSDTCollection, j, out subcollname);
-                        Console.WriteLine(subcollname);
-
-                        uint ret3;
-                        _settingsStore.GetPropertyCount(SSDTCollection, out ret3);
-                        for (uint k = 0; k < ret3; k++)
-                        {
-                            string propname;
-                            _settingsStore.GetPropertyName(SSDTCollection, k, out propname);
-                            Console.WriteLine(propname);
-
-                            uint type;
-                            _settingsStore.GetPropertyType(SSDTCollection, propname, out type);
-                            Console.WriteLine(type);
-
-                            string val;
-                            _settingsStore.GetStringOrDefault(SSDTCollection, propname, String.Empty, out val);
-                            Console.WriteLine(val);
-                            //_settingsStore.GetPropertyCount()
-                        }
+                        return;
                     }
 
                     string connectionName;
-                    string connectionString;
+                    string connectionStringOut;
                     string ConnectionNamePattern = "ConnectionName{0}";
                     string ConnectionKeyPattern = "Connection{0}";
 
@@ -196,41 +151,53 @@ namespace DataToolsUtils
                     for (int i = 0; i < 10; i++)
                     {
                         _settingsStore.GetStringOrDefault("\\ConnectionMruList", string.Format(ConnectionNamePattern, i), string.Empty, out connectionName);
-                        _settingsStore.GetStringOrDefault("\\ConnectionMruList", string.Format(ConnectionKeyPattern, i), string.Empty, out connectionString);
+                        _settingsStore.GetStringOrDefault("\\ConnectionMruList", string.Format(ConnectionKeyPattern, i), string.Empty, out connectionStringOut);
 
-                        connections.Add(connectionName, connectionString);
+                        if (!string.IsNullOrEmpty(connectionName))
+                            connections.Add(connectionName, DataProtection.DecryptString(connectionStringOut));
+                    }
+
+                    if (connections.Count == 0)
+                    {
+                        VsShellUtilities.ShowMessageBox(this.ServiceProvider, "There is no connection configured in the SQL Server Object Explorer", null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                        return;
                     }
 
 
-                        //Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog dialog = new Microsoft.VisualStudio.Data.Tools.SqlEditor.VSIntegration.ShellConnectionDialog();
 
-                        //dialog.AddServer(new SqlServerType());
-                        //Win32WindowWrapper win32WindowWrapper = new Win32WindowWrapper((IntPtr)doc.ActiveWindow.HWnd);
-                        IDbConnection connection = null;
-                    //UIConnectionInfo connInfo = new UIConnectionInfo();
-                    //DialogResult dr = dialog.ShowDialogValidateConnection(win32WindowWrapper, ref connInfo, out connection);
-                    //if (dr == DialogResult.OK && connection != null && !string.IsNullOrEmpty(connection.Database) && connection.State == ConnectionState.Open)
-                    {
-                        //VsShellUtilities.ShowMessageBox(this.ServiceProvider, "EXECUTE ON :"+ connection.ConnectionString +"; Command: " + command, "Command", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                    
+
+                    ConnectionDialog dialog = new ConnectionDialog(connections);
+                    DialogResult dr = dialog.ShowDialog();
+                    string connectionString = dialog.SelectedConnectionString;
+
+                    if (dr == DialogResult.OK && !string.IsNullOrEmpty(connectionString))
+                    {                    
 
                         IVsOutputWindow outWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
 
-                        
                         outWindow.CreatePane(ref OutputWindowGuid, OutputWindowTitle, 1, 1);
 
                         IVsOutputWindowPane customPane;
                         outWindow.GetPane(ref OutputWindowGuid, out customPane);
 
-                        customPane.OutputString("Executing script on "+connection.ConnectionString + "\r\n");
+                        customPane.OutputString("Executing script on " + connectionString + "\r\n");
 
-                        connection.ChangeDatabase("UCB"); // TODO
-
-                        var cmd = connection.CreateCommand();
-                        cmd.CommandText = command;
                         try
                         {
-                            cmd.ExecuteNonQuery();
-                            customPane.OutputString("Deployed successfully\r\n");
+                            using (IDbConnection connection = new OleDbConnection(connectionString))
+                            {
+                                var cmd = connection.CreateCommand();
+
+                                string content = GetTextDocumentContent(td);
+                                string command = PrepareCommand(content, customPane);
+
+                                cmd.CommandText = command;
+
+
+                                cmd.ExecuteNonQuery();
+                                customPane.OutputString("Deployed successfully\r\n");
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -240,10 +207,6 @@ namespace DataToolsUtils
                         }
                         customPane.Activate();
                     }
-                    //else
-                    //{
-                    //    VsShellUtilities.ShowMessageBox(this.ServiceProvider, command, "Error during connecting", OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                    //}
                 }
             }
             else
@@ -277,10 +240,15 @@ namespace DataToolsUtils
             return text;
         }
 
-        private string PrepareCommand(string text)
+        private string PrepareCommand(string text, IVsOutputWindowPane outputWindow) // do budoucna predavat log jinak
         {
             //string ret = System.Text.RegularExpressions.Regex.Replace(text, "CREATE\\s+(PROCEDURE|FUNCTION|VIEW)\\s+([^ (@\n]+)", "IF EXISTS");
-            string ret = System.Text.RegularExpressions.Regex.Replace(text, "CREATE\\s+(PROCEDURE|FUNCTION|VIEW)", "ALTER $1");
+            string pattern = "CREATE\\s+(PROCEDURE|FUNCTION|VIEW)\\s+((\\[[^\\]]+\\]|[^.]+))?[.]?((\\[[^\\]]+\\]|[^\\s]+))";
+
+            if (!Regex.IsMatch(text, pattern))
+                outputWindow.OutputString(string.Format("Processed command does not contain pattern \"{0}\". Executing anyway.",pattern));
+
+            string ret = Regex.Replace(text, pattern, "ALTER $1");
 
             return ret;
         }
