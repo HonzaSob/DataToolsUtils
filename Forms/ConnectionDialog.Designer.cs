@@ -76,6 +76,7 @@
             this.Controls.Add(this.btnOK);
             this.Name = "ConnectionDialog";
             this.Text = "Select connection";
+            this.Load += new System.EventHandler(this.ConnectionDialog_Load);
             this.ResumeLayout(false);
 
         }

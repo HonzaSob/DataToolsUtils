@@ -156,7 +156,7 @@ namespace DataToolsUtils
                             SqlConnectionStringBuilder connStringBuilder = new SqlConnectionStringBuilder();
                             connStringBuilder.ConnectionString = connStringDecrypted;
 
-                            string serverName = connStringBuilder.DataSource + "." + connStringBuilder.InitialCatalog;
+                            string serverName = (connStringBuilder.DataSource + "." + connStringBuilder.InitialCatalog).Trim('.');
 
                             connections.Add(serverName,connStringDecrypted);
                         }

@@ -20,8 +20,6 @@ namespace DataToolsUtils.Forms
         public ConnectionDialog(Dictionary<string,string> connectionStrings)
         {
             this.connectionStrings = connectionStrings;
-
-            this.listBoxConnections.DataSource = connectionStrings;
         }
 
         private string selectedConnectionString = null;
@@ -58,10 +56,19 @@ namespace DataToolsUtils.Forms
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            this.selectedConnectionString = listBoxConnections.SelectedValue.ToString();
+            this.selectedConnectionString = this.ConnectionStrings[listBoxConnections.SelectedItem.ToString()];
 
             this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        private void ConnectionDialog_Load(object sender, EventArgs e)
+        {
+            //this.listBoxConnections.DataSource = connectionStrings;
+            foreach (string key in connectionStrings.Keys)
+            {
+                this.listBoxConnections.Items.Add(key);
+            }
         }
     }
 }
