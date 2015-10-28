@@ -14,8 +14,10 @@ namespace DataToolsUtils.Services
         private IVsSettingsManager settingsManager;
         private IVsWritableSettingsStore settingsStore;
 
-        private const string CollectionName = "\\DataToolsUtilsExtension\\ConnStrings";
+        private const string CollectionPathConnStrings = "\\DataToolsUtilsExtension\\ConnStrings";
+        private const string CollectionPathRoot = "\\DataToolsUtilsExtension";
         private const string RecordNamePattern = "ConnString{0}";
+        private const string DefaultConnString = "DefaultConnString";
 
         private const int MaxCount = 20;
 
@@ -32,7 +34,7 @@ namespace DataToolsUtils.Services
             List<ConnectionString> ret = new List<ConnectionString>();
 
             int i;
-            this.settingsStore.CollectionExists(CollectionName, out i);
+            this.settingsStore.CollectionExists(CollectionPathConnStrings, out i);
 
             if (i == 0)
             {
@@ -43,7 +45,7 @@ namespace DataToolsUtils.Services
                 for (int j = 0; j < MaxCount; j++)
                 {
                     string connectionStringEncrypted;
-                    this.settingsStore.GetStringOrDefault(CollectionName,string.Format(RecordNamePattern, j), string.Empty, out connectionStringEncrypted);
+                    this.settingsStore.GetStringOrDefault(CollectionPathConnStrings,string.Format(RecordNamePattern, j), string.Empty, out connectionStringEncrypted);
 
                     if (!string.IsNullOrEmpty(connectionStringEncrypted))
                     {
@@ -58,7 +60,7 @@ namespace DataToolsUtils.Services
         internal void DeleteConnectionString(ConnectionString connString)
         {
             int i;
-            this.settingsStore.CollectionExists(CollectionName, out i);
+            this.settingsStore.CollectionExists(CollectionPathConnStrings, out i);
 
             if (i == 0)
             {
@@ -72,7 +74,7 @@ namespace DataToolsUtils.Services
             {
                 string connectionStringIterator;
                 string propName = string.Format(RecordNamePattern, j);
-                this.settingsStore.GetStringOrDefault(CollectionName, propName , string.Empty, out connectionStringIterator);
+                this.settingsStore.GetStringOrDefault(CollectionPathConnStrings, propName , string.Empty, out connectionStringIterator);
 
                 if (connectionStringIterator == connStringEncrypted)
                 {
@@ -83,16 +85,16 @@ namespace DataToolsUtils.Services
 
             if (indexToDelete >= 0)
             {
-                this.settingsStore.DeleteProperty(CollectionName, string.Format(RecordNamePattern, indexToDelete));
+                this.settingsStore.DeleteProperty(CollectionPathConnStrings, string.Format(RecordNamePattern, indexToDelete));
                 for (int j = indexToDelete+1; j<MaxCount; j++)
                 {
                     string data;
                     string jPropName = string.Format(RecordNamePattern, j);
-                    this.settingsStore.PropertyExists(CollectionName, jPropName, out i);
+                    this.settingsStore.PropertyExists(CollectionPathConnStrings, jPropName, out i);
                     if (i == 1)
                     {
-                        this.settingsStore.GetString(CollectionName, jPropName, out data);
-                        this.settingsStore.SetString(CollectionName, string.Format(RecordNamePattern, j - 1), data);
+                        this.settingsStore.GetString(CollectionPathConnStrings, jPropName, out data);
+                        this.settingsStore.SetString(CollectionPathConnStrings, string.Format(RecordNamePattern, j - 1), data);
                     }
                 }
             }
@@ -101,20 +103,57 @@ namespace DataToolsUtils.Services
         internal void AddConnectionString(ConnectionString connString)
         {
             int i;
-            this.settingsStore.CollectionExists(CollectionName, out i);
+            this.settingsStore.CollectionExists(CollectionPathConnStrings, out i);
 
             if (i == 0)
             {
-                this.settingsStore.CreateCollection(CollectionName);
+                this.settingsStore.CreateCollection(CollectionPathConnStrings);
             }
 
             uint j;
-            this.settingsStore.GetPropertyCount(CollectionName, out j);
+            this.settingsStore.GetPropertyCount(CollectionPathConnStrings, out j);
 
             string connStringEncrypted = DataProtection.EncryptString(connString.ConnectionStringRaw);
             j++;
 
-            this.settingsStore.SetString(CollectionName, string.Format(RecordNamePattern, j), connStringEncrypted);
+            this.settingsStore.SetString(CollectionPathConnStrings, string.Format(RecordNamePattern, j), connStringEncrypted);
+        }
+
+        internal void SetDefaultConnectionString(ConnectionString connString)
+        {
+            int i;
+            this.settingsStore.CollectionExists(CollectionPathRoot, out i);
+
+            if (i == 0)
+            {
+                this.settingsStore.CreateCollection(CollectionPathRoot);
+            }
+            string connStringEncrypted = DataProtection.EncryptString(connString.ConnectionStringRaw);
+
+            this.settingsStore.SetString(CollectionPathRoot, DefaultConnString, connStringEncrypted);
+        }
+
+
+        internal ConnectionString GetDefaultConnectionString()
+        {
+            int i;
+            this.settingsStore.CollectionExists(CollectionPathRoot, out i);
+
+            if (i == 0)
+            {
+                return null;
+            }
+
+            this.settingsStore.PropertyExists(CollectionPathRoot, DefaultConnString,out i);
+            if (i==0)
+            {
+                return null;
+            }
+
+            string connStringEncrypted;
+            this.settingsStore.GetString(CollectionPathRoot, DefaultConnString, out connStringEncrypted);
+
+            return new ConnectionString() { ConnectionStringRaw = DataProtection.DecryptString(connStringEncrypted) };
         }
     }
 }

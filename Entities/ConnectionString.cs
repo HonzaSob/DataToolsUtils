@@ -34,5 +34,10 @@ namespace DataToolsUtils.Entities
                 return (this.connectionStringBuilder.DataSource + "." + this.connectionStringBuilder.InitialCatalog).Trim('.');
             }
         }
+
+        public override string ToString()
+        {
+            return Label;
+        }
     }
 }

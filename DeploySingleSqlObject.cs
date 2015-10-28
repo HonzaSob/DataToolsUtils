@@ -129,53 +129,11 @@ namespace DataToolsUtils
                 {
                     IVsSettingsManager settingsManager = ServiceProvider.GetService(typeof(SVsSettingsManager)) as IVsSettingsManager;
                     
-                    settingsManager.GetWritableSettingsStore((uint)__VsSettingsScope.SettingsScope_UserSettings, out _settingsStore);
+                                        
 
-                    int ret = 0;
-                    string SSDTCollection = "\\SSDT\\SqlServerObjectExplorer";
-                    _settingsStore.CollectionExists(SSDTCollection, out ret);
-                    
-                    if (ret == 0)
-                    {
-                        VsShellUtilities.ShowMessageBox(this.ServiceProvider, "There is no connection configured in the SQL Server Object Explorer", null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                        return;
-                    }
-
-                    string connectionStringOut;
-                    string ConnectionNamePattern = "\\ServerInstance{0}";;
-
-                    Dictionary<string, string> connections = new Dictionary<string, string>();
-
-                    for (int i = 0; i < 10; i++)
-                    {
-                        _settingsStore.GetStringOrDefault(SSDTCollection + string.Format(ConnectionNamePattern, i), "ConnectionString", string.Empty, out connectionStringOut);
-
-                        if (!string.IsNullOrEmpty(connectionStringOut))
-                        {
-                            string connStringDecrypted = DataProtection.DecryptString(connectionStringOut);
-                            SqlConnectionStringBuilder connStringBuilder = new SqlConnectionStringBuilder();
-                            connStringBuilder.ConnectionString = connStringDecrypted;
-
-                            string serverName = (connStringBuilder.DataSource + "." + connStringBuilder.InitialCatalog).Trim('.');
-
-                            if (!string.IsNullOrEmpty(connStringBuilder.InitialCatalog))
-                                connections.Add(serverName,connStringDecrypted);
-                        }
-                    }
-
-                    if (connections.Count == 0)
-                    {
-                        VsShellUtilities.ShowMessageBox(this.ServiceProvider, "There is no connection configured in the SQL Server Object Explorer", null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                        return;
-                    }
-
-
-
-                    
-
-                    ConnectionDialog dialog = new ConnectionDialog(connections);
+                    ConnectionDialog dialog = new ConnectionDialog();
                     DialogResult dr = dialog.ShowDialog();
-                    string connectionString = dialog.SelectedConnectionString;
+                    string connectionString = dialog.SelectedConnectionString.ConnectionStringRaw;
 
                     if (dr == DialogResult.OK && !string.IsNullOrEmpty(connectionString))
                     {                    

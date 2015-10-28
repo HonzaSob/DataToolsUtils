@@ -7,46 +7,36 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.VisualStudio.Shell.Interop;
+using DataToolsUtils.Services;
+using DataToolsUtils.Entities;
+using Microsoft.Data.ConnectionUI;
 
 namespace DataToolsUtils.Forms
 {
-    public partial class ConnectionDialog : Form
+    internal partial class ConnectionDialog : Form
     {
+        SettingService settingService = null;
+
         public ConnectionDialog()
         {
             InitializeComponent();
         }
 
-        public ConnectionDialog(Dictionary<string,string> connectionStrings) : this()
+        public ConnectionDialog(IVsSettingsManager settingsManager) : this()
         {
-            this.connectionStrings = connectionStrings;
+            settingService = new SettingService(settingsManager);
         }
 
-        private string selectedConnectionString = null;
+        private ConnectionString selectedConnectionString = null;
 
-        public string SelectedConnectionString
+        internal ConnectionString SelectedConnectionString
         {
             get
             {
                 return selectedConnectionString;
             }
-
-            set
-            {
-                selectedConnectionString = value;
-            }
         }
-
-        public Dictionary<string, string> ConnectionStrings
-        {
-            get
-            {
-                return connectionStrings;
-            }
-        }
-
-        private Dictionary<string, string> connectionStrings = new Dictionary<string, string>();
-
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
@@ -59,18 +49,58 @@ namespace DataToolsUtils.Forms
             if (listBoxConnections.SelectedItem == null)
                 return;
 
-            this.selectedConnectionString = this.ConnectionStrings[listBoxConnections.SelectedItem.ToString()];
-
+            this.selectedConnectionString = listBoxConnections.SelectedItem as ConnectionString;
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
 
         private void ConnectionDialog_Load(object sender, EventArgs e)
         {
-            //this.listBoxConnections.DataSource = connectionStrings;
-            foreach (string key in connectionStrings.Keys)
+            var connStrings = this.settingService.GetConnectionStrings();
+            var def = this.settingService.GetDefaultConnectionString();
+
+            foreach (var it in connStrings)
             {
-                this.listBoxConnections.Items.Add(key);
+                listBoxConnections.Items.Add(it);
+                if (it.ConnectionStringRaw == def.ConnectionStringRaw)
+                    listBoxConnections.SelectedItem = it;
+            }
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                DataConnectionDialog dialog = new DataConnectionDialog();
+                DialogResult dr = dialog.ShowDialog();
+                if (dr == DialogResult.OK)
+                {
+                    string connString = dialog.ConnectionString;
+                    ConnectionString cs = new ConnectionString() { ConnectionStringRaw = connString };
+                    this.settingService.AddConnectionString(cs);
+                    listBoxConnections.Items.Add(cs);
+                    listBoxConnections.SelectedItem = cs;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+}
+
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (listBoxConnections.SelectedItem == null)
+                    return;
+
+                ConnectionString selected = listBoxConnections.SelectedItem as ConnectionString;
+                this.settingService.SetDefaultConnectionString(selected);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
             }
         }
     }
