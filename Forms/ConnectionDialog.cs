@@ -18,7 +18,7 @@ namespace DataToolsUtils.Forms
     {
         SettingService settingService = null;
 
-        public ConnectionDialog()
+        private ConnectionDialog()
         {
             InitializeComponent();
         }

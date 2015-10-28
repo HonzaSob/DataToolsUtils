@@ -132,7 +132,7 @@ namespace DataToolsUtils
                     
                                         
 
-                    ConnectionDialog dialog = new ConnectionDialog();
+                    ConnectionDialog dialog = new ConnectionDialog(settingsManager);
                     DialogResult dr = dialog.ShowDialog();
                     ConnectionString connectionString = dialog.SelectedConnectionString;
 
