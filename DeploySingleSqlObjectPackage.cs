@@ -15,6 +15,8 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
+using System.Reflection;
+using System.Collections.Generic;
 
 namespace DataToolsUtils
 {
@@ -66,6 +68,16 @@ namespace DataToolsUtils
         /// </summary>
         protected override void Initialize()
         {
+            List<Assembly> assemblies = new List<Assembly>();
+
+            Assembly root = typeof(Microsoft.Data.ConnectionUI.DataConnectionDialog).Assembly;
+            assemblies.Add(root);
+            //assemblies.Add(typeof(Microsoft.Data.ConnectionUI.IDataConnectionUIControl).Assembly);
+            //foreach (var it in root.GetReferencedAssemblies())
+            //    assemblies.Add(Assembly.Load(it));
+
+            ManualAssemblyResolver resolver = new ManualAssemblyResolver(assemblies.ToArray());
+
             DeploySingleSqlObject.Initialize(this);
             base.Initialize();
         }
