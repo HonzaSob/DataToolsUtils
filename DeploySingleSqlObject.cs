@@ -19,6 +19,7 @@ using System.Data.SqlClient;
 using Microsoft.SqlServer.Dac.Model;
 using Microsoft.SqlServer.Dac;
 using System.IO;
+using DataToolsUtils.Entities;
 
 namespace DataToolsUtils
 {
@@ -133,11 +134,10 @@ namespace DataToolsUtils
 
                     ConnectionDialog dialog = new ConnectionDialog();
                     DialogResult dr = dialog.ShowDialog();
-                    string connectionString = dialog.SelectedConnectionString.ConnectionStringRaw;
+                    ConnectionString connectionString = dialog.SelectedConnectionString;
 
-                    if (dr == DialogResult.OK && !string.IsNullOrEmpty(connectionString))
+                    if (dr == DialogResult.OK && connectionString != null)
                     {                    
-
                         IVsOutputWindow outWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
 
                         outWindow.CreatePane(ref OutputWindowGuid, OutputWindowTitle, 1, 1);
@@ -151,21 +151,16 @@ namespace DataToolsUtils
                         {
                             //using (IDbConnection connection = new SqlConnection(connectionString))
                             {
-                                //var cmd = connection.CreateCommand();
-
                                 string content = GetTextDocumentContent(td);
                                 //string command = PrepareCommand(content, customPane, connection);
-
                                 //cmd.CommandText = command;
-
-
                                 //cmd.ExecuteNonQuery();
+
                                 TSqlModelOptions options = new TSqlModelOptions();
                                 TSqlModel model = new TSqlModel(SqlServerVersion.Sql120,options);
                                 model.AddObjects(content);
                                 var errors = model.Validate();
 
-                                // tohle asi bude hazet pro proceduru haldu chyb bo tabulky v modelu nejsou
                                 if (errors != null && errors.Count > 0)
                                 {
                                     string result = "";
@@ -176,23 +171,17 @@ namespace DataToolsUtils
                                     VsShellUtilities.ShowMessageBox(this.ServiceProvider, result, null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
                                     return;
                                 }
-
                                 
-                                SqlConnectionStringBuilder connStringBuilder = new SqlConnectionStringBuilder();
-                                connStringBuilder.ConnectionString = connectionString;
-                                string databaseName = connStringBuilder.InitialCatalog;
+                                string databaseName = connectionString.InitialCatalog;
 
 
 
-                                DacServices svc = new DacServices(connectionString);
+                                DacServices svc = new DacServices(connectionString.ConnectionStringRaw);
                                 MemoryStream stream = new MemoryStream();
                                 svc.Extract(stream, databaseName, "WorkingApp", new Version(1, 0), extractOptions: new DacExtractOptions());
                                 DacPackage dacpac = DacPackage.Load(stream);
 
                                 svc.Deploy(dacpac, databaseName, true, new DacDeployOptions() { BlockOnPossibleDataLoss = true, DropObjectsNotInSource = false });
-
-                                //DacPackage package = DacPackage.Load(;
-                                //package
 
                                 customPane.OutputString("Deployed successfully\r\n");
                             }

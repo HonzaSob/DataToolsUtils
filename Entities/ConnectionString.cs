@@ -35,6 +35,14 @@ namespace DataToolsUtils.Entities
             }
         }
 
+        internal string InitialCatalog
+        {
+            get
+            {
+                return this.connectionStringBuilder.InitialCatalog;
+            }
+        }
+
         public override string ToString()
         {
             return Label;
