@@ -20,6 +20,8 @@ using Microsoft.SqlServer.Dac.Model;
 using Microsoft.SqlServer.Dac;
 using System.IO;
 using DataToolsUtils.Entities;
+using Microsoft.SqlServer.TransactSql.ScriptDom;
+using System.Text;
 
 namespace DataToolsUtils
 {
@@ -149,40 +151,85 @@ namespace DataToolsUtils
 
                         try
                         {
-                            //using (IDbConnection connection = new SqlConnection(connectionString))
+                            using (IDbConnection connection = new SqlConnection(connectionString.ConnectionStringRaw))
                             {
+                                connection.Open();
                                 string content = GetTextDocumentContent(td);
-                                //string command = PrepareCommand(content, customPane, connection);
-                                //cmd.CommandText = command;
-                                //cmd.ExecuteNonQuery();
 
-                                TSqlModelOptions options = new TSqlModelOptions();
-                                TSqlModel model = new TSqlModel(SqlServerVersion.Sql120,options);
-                                model.AddObjects(content);
-                                var errors = model.Validate();
+                                //TSqlModelOptions options = new TSqlModelOptions();
+                                //TSqlModel model = new TSqlModel(SqlServerVersion.Sql120,options);
+                                //model.AddObjects(content);
 
-                                if (errors != null && errors.Count > 0)
+                                //foreach (var obj in model.GetObjects(DacQueryScopes.UserDefined, null))
+                                //{
+                                //    string commandIt;
+                                //    Sql120ScriptGenerator gen = new Sql120ScriptGenerator();
+
+                                //    TSqlScript ast;
+                                //    if (obj.TryGetAst(out ast))
+                                //    {
+                                //        ast.Accept()
+                                //        gen.GenerateScript(ast, out commandIt);
+
+                                //        command += "GO\r\n" + commandIt;
+                                //    }
+                                //}
+
+                                StringBuilder commandBuilder = new StringBuilder();
+
+                                TSql120Parser parser = new TSql120Parser(true);
+                                IList<ParseError> errors = new List<ParseError>();
+                                TextReader reader = new StringReader(content);
+                                TSqlScript script = parser.Parse(reader,out errors) as TSqlScript;
+
+                                foreach (TSqlBatch batch in script.Batches)
                                 {
-                                    string result = "";
-                                    foreach (var it in errors)
+                                    foreach (TSqlStatement statement in batch.Statements)
                                     {
-                                        result += it.Message + "\n";
+                                        foreach (var it in statement.ScriptTokenStream)
+                                        {
+                                            if (it.TokenType == TSqlTokenType.Create)
+                                            {
+                                                commandBuilder.Append("ALTER");
+                                            }
+                                            else
+                                            {
+                                                commandBuilder.Append(it.Text);
+                                            }
+                                        }
                                     }
-                                    VsShellUtilities.ShowMessageBox(this.ServiceProvider, result, null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                                    return;
                                 }
-                                
-                                string databaseName = connectionString.InitialCatalog;
 
+                                string command = commandBuilder.ToString();
 
+                                if (!string.IsNullOrEmpty(command))
+                                {
+                                    IDbCommand cmd = connection.CreateCommand();
+                                    cmd.CommandText = command;
+                                    cmd.ExecuteNonQuery();
+                                }
+                                // toto vyhazi milion erroru, proptoze v modelu chybi tabulky
+                                //var errors = model.Validate();
+                                //if (errors != null && errors.Count > 0)
+                                //{
+                                //    string result = "";
+                                //    foreach (var it in errors)
+                                //    {
+                                //        result += it.Message + "\n";
+                                //    }
+                                //    VsShellUtilities.ShowMessageBox(this.ServiceProvider, result, null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                                //    return;
+                                //}
 
-                                DacServices svc = new DacServices(connectionString.ConnectionStringRaw);
-                                MemoryStream stream = new MemoryStream();
-                                svc.Extract(stream, databaseName, "WorkingApp", new Version(1, 0), extractOptions: new DacExtractOptions());
-                                DacPackage dacpac = DacPackage.Load(stream);
+                                //string databaseName = connectionString.InitialCatalog;
 
-                                svc.Deploy(dacpac, databaseName, true, new DacDeployOptions() { BlockOnPossibleDataLoss = true, DropObjectsNotInSource = false });
+                                //DacServices svc = new DacServices(connectionString.ConnectionStringRaw);
+                                //MemoryStream stream = new MemoryStream();
+                                //svc.Extract(stream, databaseName, "WorkingApp", new Version(1, 0), extractOptions: new DacExtractOptions());
+                                //DacPackage dacpac = DacPackage.Load(stream);
+                                //svc.Deploy(dacpac, databaseName, true, new DacDeployOptions() { BlockOnPossibleDataLoss = true, DropObjectsNotInSource = false });
 
+                                connection.Close();
                                 customPane.OutputString("Deployed successfully\r\n");
                             }
                         }
