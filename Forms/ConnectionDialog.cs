@@ -71,8 +71,10 @@ namespace DataToolsUtils.Forms
         {
             try
             {
+                DataConnectionConfiguration dcs = new DataConnectionConfiguration(null);
                 DataConnectionDialog dialog = new DataConnectionDialog();
-                DialogResult dr = dialog.ShowDialog();
+                dcs.LoadConfiguration(dialog);
+                DialogResult dr = DataConnectionDialog.Show(dialog);
                 if (dr == DialogResult.OK)
                 {
                     string connString = dialog.ConnectionString;
