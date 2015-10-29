@@ -62,7 +62,6 @@
       <DependentUpon>ConnectionDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="IDataConnectionConfiguration.cs" />
-    <Compile Include="ManualAssemblyResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\SettingService.cs" />
   </ItemGroup>
@@ -193,6 +192,7 @@
   <ItemGroup>
     <VSCTCompile Include="DeploySingleSqlObjectPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>

@@ -11,6 +11,9 @@ namespace DataToolsUtils.Services
 {
     internal class SettingService
     {
+        public class DuplicateConnectionStringException : Exception
+        { }
+
         private IVsSettingsManager settingsManager;
         private IVsWritableSettingsStore settingsStore;
 
@@ -66,7 +69,7 @@ namespace DataToolsUtils.Services
             {
                 return;
             }
-            string connStringEncrypted = DataProtection.EncryptString(connString.ConnectionStringRaw);
+            //string connStringEncrypted = DataProtection.EncryptString(connString.ConnectionStringRaw);
 
             int indexToDelete = -1;
 
@@ -76,7 +79,11 @@ namespace DataToolsUtils.Services
                 string propName = string.Format(RecordNamePattern, j);
                 this.settingsStore.GetStringOrDefault(CollectionPathConnStrings, propName , string.Empty, out connectionStringIterator);
 
-                if (connectionStringIterator == connStringEncrypted)
+                string connectionStringDecrypted = string.Empty;
+                if (!string.IsNullOrEmpty(connectionStringIterator))
+                    connectionStringDecrypted = DataProtection.DecryptString(connectionStringIterator);
+
+                if (connectionStringDecrypted == connString.ConnectionStringRaw)
                 {
                     indexToDelete = j;
                     break;
@@ -85,7 +92,6 @@ namespace DataToolsUtils.Services
 
             if (indexToDelete >= 0)
             {
-                this.settingsStore.DeleteProperty(CollectionPathConnStrings, string.Format(RecordNamePattern, indexToDelete));
                 for (int j = indexToDelete+1; j<MaxCount; j++)
                 {
                     string data;
@@ -95,6 +101,11 @@ namespace DataToolsUtils.Services
                     {
                         this.settingsStore.GetString(CollectionPathConnStrings, jPropName, out data);
                         this.settingsStore.SetString(CollectionPathConnStrings, string.Format(RecordNamePattern, j - 1), data);
+                    }
+                    else
+                    {
+                        //delete the last one
+                        this.settingsStore.DeleteProperty(CollectionPathConnStrings, string.Format(RecordNamePattern, j-1));
                     }
                 }
             }
@@ -113,8 +124,24 @@ namespace DataToolsUtils.Services
             uint j;
             this.settingsStore.GetPropertyCount(CollectionPathConnStrings, out j);
 
+            for (int k = 0; k < j; k++)
+            {
+                string connectionStringIterator;
+                string propName = string.Format(RecordNamePattern, k);
+                this.settingsStore.GetStringOrDefault(CollectionPathConnStrings, propName, string.Empty, out connectionStringIterator);
+
+                string connectionStringDecrypted = string.Empty;
+                if (!string.IsNullOrEmpty(connectionStringIterator))
+                    connectionStringDecrypted = DataProtection.DecryptString(connectionStringIterator);
+
+                if (connectionStringDecrypted == connString.ConnectionStringRaw)
+                {
+                    throw new DuplicateConnectionStringException();
+                }
+            }
+
+
             string connStringEncrypted = DataProtection.EncryptString(connString.ConnectionStringRaw);
-            j++;
 
             this.settingsStore.SetString(CollectionPathConnStrings, string.Format(RecordNamePattern, j), connStringEncrypted);
         }

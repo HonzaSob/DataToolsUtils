@@ -46,12 +46,21 @@ namespace DataToolsUtils.Forms
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            if (listBoxConnections.SelectedItem == null)
-                return;
+            try
+            { 
+                if (listBoxConnections.SelectedItem == null)
+                    return;
 
-            this.selectedConnectionString = listBoxConnections.SelectedItem as ConnectionString;
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+                this.selectedConnectionString = listBoxConnections.SelectedItem as ConnectionString;
+                this.settingService.SetDefaultConnectionString(this.selectedConnectionString);
+ 
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         private void ConnectionDialog_Load(object sender, EventArgs e)
@@ -84,6 +93,10 @@ namespace DataToolsUtils.Forms
                     listBoxConnections.SelectedItem = cs;
                 }
             }
+            catch (SettingService.DuplicateConnectionStringException)
+            {
+                MessageBox.Show("Connection string already exists in the list");
+            }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
@@ -98,7 +111,8 @@ namespace DataToolsUtils.Forms
                     return;
 
                 ConnectionString selected = listBoxConnections.SelectedItem as ConnectionString;
-                this.settingService.SetDefaultConnectionString(selected);
+                this.settingService.DeleteConnectionString(selected);
+                listBoxConnections.Items.Remove(selected);
             }
             catch (Exception ex)
             {
