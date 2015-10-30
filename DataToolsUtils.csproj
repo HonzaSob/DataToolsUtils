@@ -63,6 +63,7 @@
     </Compile>
     <Compile Include="IDataConnectionConfiguration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ScriptGeneratorService.cs" />
     <Compile Include="Services\SettingService.cs" />
   </ItemGroup>
   <ItemGroup>
