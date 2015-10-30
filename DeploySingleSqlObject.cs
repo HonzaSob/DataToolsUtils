@@ -180,7 +180,9 @@ namespace DataToolsUtils
                                 TSql120Parser parser = new TSql120Parser(true);
                                 IList<ParseError> errors = new List<ParseError>();
                                 TextReader reader = new StringReader(content);
-                                TSqlScript script = parser.Parse(reader,out errors) as TSqlScript;
+                                TSqlScript script = parser.Parse(reader, out errors) as TSqlScript;
+
+                                bool isSupported = false;
 
                                 foreach (TSqlBatch batch in script.Batches)
                                 {
@@ -196,17 +198,33 @@ namespace DataToolsUtils
                                             {
                                                 commandBuilder.Append(it.Text);
                                             }
+
+                                            if (it.TokenType == TSqlTokenType.Procedure
+                                                || it.TokenType == TSqlTokenType.Function
+                                                || it.TokenType == TSqlTokenType.View
+                                                )
+                                            {
+                                                isSupported = true;
+                                            }
                                         }
                                     }
                                 }
 
                                 string command = commandBuilder.ToString();
 
-                                if (!string.IsNullOrEmpty(command))
+                                if (isSupported)
                                 {
-                                    IDbCommand cmd = connection.CreateCommand();
-                                    cmd.CommandText = command;
-                                    cmd.ExecuteNonQuery();
+                                    if (!string.IsNullOrEmpty(command))
+                                    {
+                                        IDbCommand cmd = connection.CreateCommand();
+                                        cmd.CommandText = command;
+                                        cmd.ExecuteNonQuery();
+                                    }
+                                }
+                                else
+                                {
+                                    VsShellUtilities.ShowMessageBox(this.ServiceProvider, "The object is not supported. ALTER script could not be created.", "Error", OLEMSGICON.OLEMSGICON_CRITICAL, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                                    return;
                                 }
                                 // toto vyhazi milion erroru, proptoze v modelu chybi tabulky
                                 //var errors = model.Validate();
