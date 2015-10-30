@@ -147,7 +147,7 @@ namespace DataToolsUtils
                         outWindow.GetPane(ref OutputWindowGuid, out customPane);
 
                         customPane.OutputString("Executing script on " + connectionString + "\r\n");
-
+                        string command = "";
                         try
                         {
                             using (IDbConnection connection = new SqlConnection(connectionString.ConnectionStringRaw))
@@ -209,7 +209,7 @@ namespace DataToolsUtils
                                     }
                                 }
 
-                                string command = commandBuilder.ToString();
+                                command = commandBuilder.ToString();
 
                                 if (isSupported)
                                 {
@@ -253,6 +253,7 @@ namespace DataToolsUtils
                         catch (Exception ex)
                         {
                             string error = "\r\nError during deployment: " + ex.ToString() + "\r\n";
+                            customPane.OutputString(command);
                             customPane.OutputString(error);
                             VsShellUtilities.ShowMessageBox(this.ServiceProvider, error, "Error", OLEMSGICON.OLEMSGICON_CRITICAL, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
                         }
