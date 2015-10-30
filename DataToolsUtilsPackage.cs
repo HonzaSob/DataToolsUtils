@@ -1,10 +1,4 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="DeploySingleSqlObjectPackage.cs" company="Microsoft">
-//     Copyright (c) Microsoft.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -40,19 +34,19 @@ namespace DataToolsUtils
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [Guid(DeploySingleSqlObjectPackage.PackageGuidString)]
+    [Guid(DataToolsUtilsPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    public sealed class DeploySingleSqlObjectPackage : Package
+    public sealed class DataToolsUtilsPackage : Package
     {
         /// <summary>
-        /// DeploySingleSqlObjectPackage GUID string.
+        /// DataToolsUtilsPackage GUID string.
         /// </summary>
         public const string PackageGuidString = "7890018E-DF8D-4905-A158-0E89ECF7C050";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploySingleSqlObject"/> class.
         /// </summary>
-        public DeploySingleSqlObjectPackage()
+        public DataToolsUtilsPackage()
         {
             // Inside this method you can place any initialization code that does not require
             // any Visual Studio service because at this point the package object is created but

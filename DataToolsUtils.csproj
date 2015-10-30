@@ -53,7 +53,7 @@
   <ItemGroup>
     <Compile Include="DataConnectionConfiguration.cs" />
     <Compile Include="DeploySingleSqlObject.cs" />
-    <Compile Include="DeploySingleSqlObjectPackage.cs" />
+    <Compile Include="DataToolsUtilsPackage.cs" />
     <Compile Include="Entities\ConnectionString.cs" />
     <Compile Include="Forms\ConnectionDialog.cs">
       <SubType>Form</SubType>
@@ -193,7 +193,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <VSCTCompile Include="DeploySingleSqlObjectPackage.vsct">
+    <VSCTCompile Include="DataToolsUtilsPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
@@ -205,13 +205,14 @@
     <EmbeddedResource Include="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Libraries\Microsoft.Data.ConnectionUI.Dialog.dll" />
     <Content Include="Libraries\Microsoft.Data.ConnectionUI.dll" />
     <Content Include="Resources\DeploySingleSqlObject.png" />
-    <Content Include="Resources\DeploySingleSqlObjectPackage.ico" />
+    <Content Include="Resources\DataToolsUtilsPackage.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />

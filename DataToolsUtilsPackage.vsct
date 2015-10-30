@@ -22,7 +22,7 @@
 
   <!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
-  <Commands package="guidDeploySingleSqlObjectPackage">
+  <Commands package="guidDataToolsUtilsPackage">
     <!-- Inside this section we have different sub-sections: one for the menus, another
     for the menu groups, one for the buttons (the actual commands), one for the combos
     and the last one for the bitmaps used. Each element is identified by a command id that
@@ -30,14 +30,27 @@
     called "command set" and is used to group different command inside a logically related
     group; your package should define its own command set in order to avoid collisions
     with command ids defined by other packages. -->
+    <Menus>
+      <Menu guid="guidDataToolsUtilsPackageToolbarCmdSet" id="Toolbar" type="Toolbar" >
+        <CommandFlag>DefaultDocked</CommandFlag>
+        <Strings>
+          <ButtonText>DataTools Utils</ButtonText>
+          <CommandName>DataTools Utils</CommandName>
+        </Strings>
+      </Menu>
+    </Menus>
+
 
     <!-- In this section you can define new menu groups. A menu group is a container for
          other menus or buttons (commands); from a visual point of view you can see the
          group as the part of a menu contained between two lines. The parent of a group
          must be a menu. -->
     <Groups>
-      <Group guid="guidDeploySingleSqlObjectPackageCmdSet" id="MyMenuGroup" priority="0x0600">
+      <Group guid="guidDataToolsUtilsPackageCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+      <Group guid="guidDataToolsUtilsPackageToolbarCmdSet" id="ToolbarGroup" priority="0x0000">
+        <Parent guid="guidDataToolsUtilsPackageToolbarCmdSet" id="Toolbar"/>
       </Group>
     </Groups>
 
@@ -52,8 +65,15 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="guidDeploySingleSqlObjectPackageCmdSet" id="DeploySingleSqlObjectId" priority="0x0100" type="Button">
-        <Parent guid="guidDeploySingleSqlObjectPackageCmdSet" id="MyMenuGroup" />
+      <Button guid="guidDataToolsUtilsPackageCmdSet" id="DeploySingleSqlObjectId" priority="0x0100" type="Button">
+        <Parent guid="guidDataToolsUtilsPackageCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Deploy object</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidDataToolsUtilsPackageToolbarCmdSet" id="ToolbarDeploySingleSqlObjectId" priority="0x0100" type="Button">
+        <Parent guid= "guidDataToolsUtilsPackageToolbarCmdSet" id="ToolbarGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Deploy object</ButtonText>
@@ -74,10 +94,10 @@
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidDeploySingleSqlObjectPackage" value="{7890018E-DF8D-4905-A158-0E89ECF7C050}" />
+    <GuidSymbol name="guidDataToolsUtilsPackage" value="{7890018E-DF8D-4905-A158-0E89ECF7C050}" />
 
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidDeploySingleSqlObjectPackageCmdSet" value="{F1732CDA-75A4-4A9E-A7B0-C2F3AF84A31B}">
+    <GuidSymbol name="guidDataToolsUtilsPackageCmdSet" value="{F1732CDA-75A4-4A9E-A7B0-C2F3AF84A31B}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="DeploySingleSqlObjectId" value="0x0100" />
     </GuidSymbol>
@@ -89,6 +109,12 @@
       <IDSymbol name="bmpPicX" value="4" />
       <IDSymbol name="bmpPicArrows" value="5" />
       <IDSymbol name="bmpPicStrikethrough" value="6" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidDataToolsUtilsPackageToolbarCmdSet" value="{B604ABA3-05BC-47E5-94AC-54B8CFB26AFB}">
+      <IDSymbol name="Toolbar" value="0x1000" />
+      <IDSymbol name="ToolbarGroup" value="0x1050" />
+      <IDSymbol name="ToolbarDeploySingleSqlObjectId" value="0x1060"/>
     </GuidSymbol>
   </Symbols>
 </CommandTable>
