@@ -211,6 +211,14 @@
   <ItemGroup>
     <Content Include="Libraries\Microsoft.Data.ConnectionUI.Dialog.dll" />
     <Content Include="Libraries\Microsoft.Data.ConnectionUI.dll" />
+    <Content Include="README.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="license.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\DeploySingleSqlObject.png" />
     <Content Include="Resources\DataToolsUtilsPackage.ico" />
   </ItemGroup>

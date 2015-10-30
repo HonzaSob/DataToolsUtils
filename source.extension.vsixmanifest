@@ -4,7 +4,8 @@
     <Identity Id="DataToolsUtils.JanSobotka.213f0188-47c1-4973-b118-70e1dcd66b6e" Version="1.1" Language="en-US" Publisher="Jan Sobotka" />
     <DisplayName>DataTools Utils</DisplayName>
     <Description xml:space="preserve">Plugin contains some useful commands for SQL development in Visual Studio</Description>
-    <License>Free like a bird :-D</License>
+    <License>license.txt</License>
+    <GettingStartedGuide>README.txt</GettingStartedGuide>
     <Tags>SSDT, SQL Server Data Tools</Tags>
   </Metadata>
   <Installation>
