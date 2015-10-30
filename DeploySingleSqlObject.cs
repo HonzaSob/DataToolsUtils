@@ -132,33 +132,50 @@ namespace DataToolsUtils
                         IVsOutputWindowPane customPane;
                         outWindow.GetPane(ref OutputWindowGuid, out customPane);
 
-                        customPane.OutputString("Executing script on " + connectionString + "\r\n");
+                        customPane.OutputString(string.Format("\r\n{0}: Deploying script \"{1}\" to \"{2}\"\r\n",DateTime.Now.ToString(),doc.Name,connectionString));
                         string command = "";
+                        IDbTransaction tran = null;
                         try
                         {
                             using (IDbConnection connection = new SqlConnection(connectionString.ConnectionStringRaw))
                             {
                                 connection.Open();
                                 string content = GetTextDocumentContent(td);
-                                command = new ScriptGeneratorService().GenerateDropAndCreateScript(content);
+                                List<string> commands = new ScriptGeneratorService().GenerateDropAndCreateScripts(content);
 
-                                if (!string.IsNullOrEmpty(command))
+                                tran = connection.BeginTransaction();
+
+                                foreach (string it in commands)
                                 {
-                                    IDbCommand cmd = connection.CreateCommand();
-                                    cmd.CommandText = command;
-                                    cmd.ExecuteNonQuery();
+                                    command = it;
+                                    if (!string.IsNullOrEmpty(command))
+                                    {
+                                        IDbCommand cmd = connection.CreateCommand();
+                                        cmd.CommandText = command;
+                                        cmd.Transaction = tran;
+                                        cmd.ExecuteNonQuery();
+                                    }
                                 }
 
+                                tran.Commit();
                                 connection.Close();
                                 customPane.OutputString("Deployed successfully\r\n");
                             }
                         }
                         catch (ScriptGeneratorService.UnsupportedObjectException exc)
                         {
-                            VsShellUtilities.ShowMessageBox(this.ServiceProvider, "ALTER script could not be created. The object is not supported. Supported types of objects: "+exc.SupportedObjectTypes, "Error", OLEMSGICON.OLEMSGICON_CRITICAL, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                            if (tran != null && tran.Connection.State != ConnectionState.Closed)
+                                tran.Rollback();
+                            string message = "ALTER script could not be created. The object is not supported. Supported types of objects: " + exc.SupportedObjectTypes;
+                            customPane.OutputString("Deployment stopped");
+                            customPane.OutputString(message);
+                            VsShellUtilities.ShowMessageBox(this.ServiceProvider, message, null, OLEMSGICON.OLEMSGICON_WARNING, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
                         }
                         catch (Exception ex)
                         {
+                            if (tran != null && tran.Connection.State != ConnectionState.Closed)
+                                tran.Rollback();
+
                             string error = "\r\nError during deployment: " + ex.ToString() + "\r\n";
                             customPane.OutputString(command);
                             customPane.OutputString(error);
