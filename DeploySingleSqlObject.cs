@@ -40,7 +40,6 @@ namespace DataToolsUtils
         /// </summary>
         public static readonly Guid CommandSet = new Guid("F1732CDA-75A4-4A9E-A7B0-C2F3AF84A31B");
 
-
         /// <summary>
         /// OutputWindow Guid
         /// </summary>
