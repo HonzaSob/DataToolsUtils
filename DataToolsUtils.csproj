@@ -87,10 +87,13 @@
     </Reference>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Data.ConnectionUI, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.Data.ConnectionUI.Dialog, Version=0.0.0.0, Culture=neutral, PublicKeyToken=f4ca07f51760da93, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.Data.ConnectionUI, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Microsoft.Data.ConnectionUI.Dialog.dll</HintPath>
+      <HintPath>Libraries\Microsoft.Data.ConnectionUI.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.ConnectionUI.Dialog, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libraries\Microsoft.Data.ConnectionUI.Dialog.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.SqlServer.Dac">
       <HintPath>..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\Microsoft\SQLDB\DAC\120\Microsoft.SqlServer.Dac.dll</HintPath>
@@ -205,6 +208,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Libraries\Microsoft.Data.ConnectionUI.Dialog.dll" />
+    <Content Include="Libraries\Microsoft.Data.ConnectionUI.dll" />
     <Content Include="Resources\DeploySingleSqlObject.png" />
     <Content Include="Resources\DeploySingleSqlObjectPackage.ico" />
   </ItemGroup>
