@@ -1,18 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="DataToolsUtils.JanSobotka.213f0188-47c1-4973-b118-70e1dcd66b6e" Version="1.0" Language="en-US" Publisher="Jan Sobotka" />
+    <Identity Id="DataToolsUtils.JanSobotka.213f0188-47c1-4973-b118-70e1dcd66b6e" Version="1.1" Language="en-US" Publisher="Jan Sobotka" />
     <DisplayName>DataTools Utils</DisplayName>
     <Description xml:space="preserve">Plugin contains some useful commands for SQL development in Visual Studio</Description>
+    <License>Free like a bird :-D</License>
+    <Tags>SSDT, SQL Server Data Tools</Tags>
   </Metadata>
   <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[14.0]" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[12.0,15.0)" />
     <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.IntegratedShell" />
+    <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.Community" />
+    <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.Enterprise" />
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-    <Dependency Id="Microsoft.VisualStudio.MPF.14.0" DisplayName="Visual Studio MPF 14.0" d:Source="Installed" Version="[14.0]" />
-    <Dependency d:Source="Installed" Id="C4D3BC8D-48FB-495D-BCA3-9539975C0B18" DisplayName="Microsoft SQL Server Data Tools" Version="[14.0.50616.0,15.0)" />
+    <Dependency Id="Microsoft.VisualStudio.MPF.12.0" DisplayName="Visual Studio MPF 12.0" d:Source="Installed" Version="[12.0,15.0)" />
+    <Dependency d:Source="Installed" Id="C4D3BC8D-48FB-495D-BCA3-9539975C0B18" DisplayName="Microsoft SQL Server Data Tools" Version="[12.0,15.0)" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
