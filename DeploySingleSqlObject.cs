@@ -141,7 +141,18 @@ namespace DataToolsUtils
                             {
                                 connection.Open();
                                 string content = GetTextDocumentContent(td);
-                                List<string> commands = new ScriptGeneratorService().GenerateDropAndCreateScripts(content);
+
+                                List<string> commands = new List<string>();
+
+                                try
+                                {
+                                    commands = new ScriptGeneratorService().GenerateDropAndCreateScripts(content);
+                                }
+                                catch (ScriptGeneratorService.ComplexScriptException)
+                                {
+                                    customPane.OutputString("Script is too complex => could not generate drop and create statements. Trying to execute the script as is.\r\n");
+                                    commands = new ScriptGeneratorService().SplitBatches(content);
+                                }
 
                                 tran = connection.BeginTransaction();
 
@@ -173,7 +184,7 @@ namespace DataToolsUtils
                         }
                         catch (Exception ex)
                         {
-                            if (tran != null && tran.Connection.State != ConnectionState.Closed)
+                            if (tran != null && tran.Connection != null && tran.Connection.State != ConnectionState.Closed)
                                 tran.Rollback();
 
                             string error = "\r\nError during deployment: " + ex.ToString() + "\r\n";

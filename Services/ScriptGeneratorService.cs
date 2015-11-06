@@ -24,6 +24,16 @@ namespace DataToolsUtils.Services
             }
         }
 
+        public class ComplexScriptException : Exception
+        {
+
+        }
+
+        public class InvalidScriptException : Exception
+        {
+
+        }
+
         private const string DefaultDatabaseSchema = "dbo";
 
         private const string BatchDelimiter = "\r\nGO\r\n";
@@ -76,47 +86,55 @@ namespace DataToolsUtils.Services
 
             TSqlModelOptions options = new TSqlModelOptions();
             TSqlModel model = new TSqlModel(SqlServerVersion.Sql120, options);
-            model.AddObjects(sql);
-            string dropScript = "";
-
-            foreach (var obj in model.GetObjects(DacQueryScopes.UserDefined, null))
+            try
             {
-                string script;
-                if (obj.TryGetScript(out script))
+                model.AddObjects(sql);
+                string dropScript = "";
+
+                foreach (var obj in model.GetObjects(DacQueryScopes.UserDefined, null))
                 {
-                    //change drop script to EXISTS(SELECT OBJECT_ID('"+obj.Name+"'))???
-                    
-                    if (obj.ObjectType.Name == View.TypeClass.Name)
+                    string script;
+                    if (obj.TryGetScript(out script))
                     {
-                        dropScript = string.Format("IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = '{0}' AND TABLE_NAME = '{1}') \r\nBEGIN\r\n DROP VIEW [{0}].[{1}]; \r\nEND\r\n",
-                            GetSchemaName(obj.Name),
-                            GetObjectName(obj.Name)
-                            );
+                        //change drop script to EXISTS(SELECT OBJECT_ID('"+obj.Name+"'))???
+
+                        if (obj.ObjectType.Name == View.TypeClass.Name)
+                        {
+                            dropScript = string.Format("IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = '{0}' AND TABLE_NAME = '{1}') \r\nBEGIN\r\n DROP VIEW [{0}].[{1}]; \r\nEND\r\n",
+                                GetSchemaName(obj.Name),
+                                GetObjectName(obj.Name)
+                                );
+                        }
+                        else if (obj.ObjectType.Name == ScalarFunction.TypeClass.Name || obj.ObjectType.Name == TableValuedFunction.TypeClass.Name)
+                        {
+                            dropScript = string.Format("IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA = '{0}' AND ROUTINE_NAME = '{1}' AND ROUTINE_TYPE = 'FUNCTION') \r\nBEGIN\r\n DROP FUNCTION [{0}].[{1}]; \r\nEND\r\n",
+                                GetSchemaName(obj.Name),
+                                GetObjectName(obj.Name)
+                                );
+                        }
+                        else if (obj.ObjectType.Name == Procedure.TypeClass.Name)
+                        {
+                            dropScript = string.Format("IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA = '{0}' AND ROUTINE_NAME = '{1}' AND ROUTINE_TYPE = 'PROCEDURE') \r\nBEGIN\r\n DROP PROCEDURE [{0}].[{1}]; \r\nEND\r\n",
+                                GetSchemaName(obj.Name),
+                                GetObjectName(obj.Name)
+                                );
+                        }
+                        else if (obj.ObjectType.Name == ExtendedProperty.TypeClass.Name)
+                        {
+                            dropScript = "";
+                        }
+                        else
+                            throw new UnsupportedObjectException();
+                        if (!string.IsNullOrEmpty(dropScript))
+                            ret.Add(dropScript);
+                        ret.Add(script);
                     }
-                    else if (obj.ObjectType.Name == ScalarFunction.TypeClass.Name || obj.ObjectType.Name == TableValuedFunction.TypeClass.Name)
-                    {
-                        dropScript = string.Format("IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA = '{0}' AND ROUTINE_NAME = '{1}' AND ROUTINE_TYPE = 'FUNCTION') \r\nBEGIN\r\n DROP FUNCTION [{0}].[{1}]; \r\nEND\r\n",
-                            GetSchemaName(obj.Name),
-                            GetObjectName(obj.Name)
-                            );
-                    }
-                    else if (obj.ObjectType.Name == Procedure.TypeClass.Name)
-                    {
-                        dropScript = string.Format("IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA = '{0}' AND ROUTINE_NAME = '{1}' AND ROUTINE_TYPE = 'PROCEDURE') \r\nBEGIN\r\n DROP PROCEDURE [{0}].[{1}]; \r\nEND\r\n",
-                            GetSchemaName(obj.Name),
-                            GetObjectName(obj.Name)
-                            );
-                    }
-                    else if (obj.ObjectType.Name == ExtendedProperty.TypeClass.Name)
-                    {
-                        dropScript = "";
-                    }
-                    else
-                        throw new UnsupportedObjectException();
-                    if (!string.IsNullOrEmpty(dropScript))
-                        ret.Add(dropScript);
-                    ret.Add(script);
                 }
+            }
+            catch (Microsoft.SqlServer.Dac.Model.DacModelException)
+            {
+                //kdyz to nejde pres model
+                throw new ComplexScriptException();
             }
 
             return  ret;
@@ -150,6 +168,41 @@ namespace DataToolsUtils.Services
             //        outputWindow.OutputString(string.Format("Processed command does not contain pattern \"{0}\". Executing anyway.",pattern));
 
             //    string ret = Regex.Replace(text, pattern, "ALTER $1");
+        }
+
+        public List<string> SplitBatches(string sql)
+        {
+            List<string> ret = new List<string>();
+            //try
+            //{
+            TSql120Parser parser = new TSql120Parser(false);
+            IList<ParseError> errors = new List<ParseError>();
+            TextReader reader = new StringReader(sql);
+            TSqlScript script = parser.Parse(reader, out errors) as TSqlScript;
+
+            if (errors.Count > 0)
+                throw new InvalidScriptException();
+
+            List<TSqlParserToken> tokens = script.ScriptTokenStream.ToList();
+
+            foreach (TSqlBatch batch in script.Batches)
+            {
+                StringBuilder sb = new StringBuilder();
+                for (int i = batch.FirstTokenIndex; i <= batch.LastTokenIndex; i++)
+                {
+                    TSqlParserToken it = tokens[i];
+                    if (it.TokenType != TSqlTokenType.Go)
+                        sb.Append(it.Text);
+                }
+                ret.Add(sb.ToString());
+            }
+
+            //}
+            //catch
+            //{
+            //    throw new InvalidScriptException();
+            //}
+            return ret;
         }
 
         private string GetSchemaName(ObjectIdentifier identifier)
