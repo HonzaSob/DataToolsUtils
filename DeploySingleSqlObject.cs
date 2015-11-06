@@ -137,8 +137,13 @@ namespace DataToolsUtils
                         IDbTransaction tran = null;
                         try
                         {
-                            using (IDbConnection connection = new SqlConnection(connectionString.ConnectionStringRaw))
+                            using (SqlConnection connection = new SqlConnection(connectionString.ConnectionStringRaw))
                             {
+                                connection.InfoMessage += delegate (object sen, SqlInfoMessageEventArgs ea)
+                                {
+                                    customPane.OutputString(string.Format("\t{0}\r\n", ea.Message.Replace("\r","").Replace("\n","\n\t")));
+                                };
+
                                 connection.Open();
                                 string content = GetTextDocumentContent(td);
 
@@ -167,7 +172,7 @@ namespace DataToolsUtils
                                         cmd.ExecuteNonQuery();
                                     }
                                 }
-
+                                command = null;
                                 tran.Commit();
                                 connection.Close();
                                 customPane.OutputString("Deployed successfully\r\n");
