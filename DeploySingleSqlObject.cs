@@ -134,7 +134,7 @@ namespace DataToolsUtils
 
                         customPane.OutputString(string.Format("\r\n{0}: Deploying script \"{1}\" to \"{2}\"\r\n",DateTime.Now.ToString(),doc.Name,connectionString));
                         string command = "";
-                        IDbTransaction tran = null;
+                        SqlTransaction tran = null;
                         try
                         {
                             using (SqlConnection connection = new SqlConnection(connectionString.ConnectionStringRaw))
@@ -173,7 +173,14 @@ namespace DataToolsUtils
                                     }
                                 }
                                 command = null;
-                                tran.Commit();
+                                try
+                                {
+                                    tran.Commit();
+                                }
+                                catch (InvalidOperationException)
+                                {
+                                    customPane.OutputString("Problem with commit. Transaction probably commited inside the script.\r\n");
+                                }
                                 connection.Close();
                                 customPane.OutputString("Deployed successfully\r\n");
                             }
