@@ -16,7 +16,6 @@
     </Installation>
     <Dependencies>
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-        <Dependency Id="Microsoft.VisualStudio.MPF.12.0" DisplayName="Visual Studio MPF 12.0" d:Source="Installed" Version="[12.0)" />
         <Dependency d:Source="Installed" Id="C4D3BC8D-48FB-495D-BCA3-9539975C0B18" DisplayName="Microsoft SQL Server Data Tools" Version="[15.0,)" />
     </Dependencies>
     <Assets>
