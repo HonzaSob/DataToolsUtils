@@ -1,5 +1,9 @@
 ﻿# DataToolsUtils repository
-This GitHub repository contains code of DataToolsUtils project - set of plugins helping you with development of database objects in MIcrosoft SQL Server Data Tools
+This GitHub repository contains code of DataToolsUtils project - set of plugins helping you with development of database objects in MIcrosoft SQL Server Data Tools. Any edition of Visual Studio 2017 with Microsoft SQL Server Data Tools 15 and higher is supported now.
+
+## Installation
+
+Clone source codes, get all Nuget packages and build the solution. Than install DataToolsUtils.vsix extension into you VIsual Studio and you can start using it :-)
 
 ## Plugins
 The project currently contains only one plugin.
