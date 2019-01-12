@@ -14,6 +14,8 @@ There are several limitations - it can deploy only functions, procedures or view
 You can use the plugin easily by opening code of procedure (function, view) in Visual Studio. Than you have to click on DeploySingleSqlObject icon on DataToolsUtils toolbar in VisualStudio. You need to pick correct database connection in next dialog window.
 Clicking OK will deploy the object. Results of deployment or any error messages will be displayed in DeploySingleSqlObject Output pane.
 
+See wiki to get guide with screenshots https://github.com/HonzaSob/DataToolsUtils/wiki/DeploySingleSqlObject
+
 ## License
 This project is licensed under the GNU GPL license. See the license.txt file in the root.
 
