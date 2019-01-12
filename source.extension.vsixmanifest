@@ -1,25 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
-  <Metadata>
-    <Identity Id="DataToolsUtils.JanSobotka.213f0188-47c1-4973-b118-70e1dcd66b6e" Version="1.3" Language="en-US" Publisher="Jan Sobotka" />
-    <DisplayName>DataTools Utils</DisplayName>
-    <Description xml:space="preserve">Plugin contains some useful commands for SQL development in Visual Studio</Description>
-    <License>license.txt</License>
-    <GettingStartedGuide>README.txt</GettingStartedGuide>
-    <Tags>SSDT, SQL Server Data Tools</Tags>
-  </Metadata>
-  <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[12.0,15.0)" />
-    <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.IntegratedShell" />
-    <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.Community" />
-    <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.Enterprise" />
-  </Installation>
-  <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-    <Dependency Id="Microsoft.VisualStudio.MPF.12.0" DisplayName="Visual Studio MPF 12.0" d:Source="Installed" Version="[12.0,15.0)" />
-    <Dependency d:Source="Installed" Id="C4D3BC8D-48FB-495D-BCA3-9539975C0B18" DisplayName="Microsoft SQL Server Data Tools" Version="[12.0,15.0)" />
-  </Dependencies>
-  <Assets>
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-  </Assets>
+    <Metadata>
+        <Identity Id="DataToolsUtils.JanSobotka.213f0188-47c1-4973-b118-70e1dcd66b6e" Version="1.4" Language="en-US" Publisher="Jan Sobotka" />
+        <DisplayName>DataTools Utils</DisplayName>
+        <Description xml:space="preserve">Plugin contains some useful commands for SQL development in Visual Studio</Description>
+        <License>license.txt</License>
+        <GettingStartedGuide>README.txt</GettingStartedGuide>
+        <Tags>SSDT, SQL Server Data Tools</Tags>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,)" />
+        <InstallationTarget Version="[15.0,)" Id="Microsoft.VisualStudio.IntegratedShell" />
+        <InstallationTarget Version="[15.0,)" Id="Microsoft.VisualStudio.Community" />
+        <InstallationTarget Version="[15.0,)" Id="Microsoft.VisualStudio.Enterprise" />
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+        <Dependency Id="Microsoft.VisualStudio.MPF.12.0" DisplayName="Visual Studio MPF 12.0" d:Source="Installed" Version="[12.0)" />
+        <Dependency d:Source="Installed" Id="C4D3BC8D-48FB-495D-BCA3-9539975C0B18" DisplayName="Microsoft SQL Server Data Tools" Version="[15.0,)" />
+    </Dependencies>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    </Assets>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,)" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
 </PackageManifest>
