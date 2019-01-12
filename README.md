@@ -2,6 +2,7 @@
 This GitHub repository contains code of DataToolsUtils project - set of plugins helping you with development of database objects in MIcrosoft SQL Server Data Tools
 
 ##Plugins
+The project currently contains only one plugin.
 
 ### DeploySingleSqlObject
 This plugin helps you to deploy changes of only one SQL object currently opened in Visual Studio. This is especially helpful when you are developing only one object (eg. stored procedure) and your database project is too large so complete deployment of any change take several minutes.
